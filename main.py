@@ -4,16 +4,13 @@ from pprint import pprint
 from YaDiskUploader import YaUploader
 from VK_get_photos import VkGetPhotos
 
-# загружаю токеный из файла. 
+# загружаю токены из файла. 
 # Первая строка - токен Яндекс диска,
 # Вторая строка - токен ВК с правами photos 
 
 with open('token.txt', 'r') as file_object:
     yadisk_token = file_object.readline().strip()
     vk_token = file_object.readline().strip()
-# print(yadisk_token)
-# print(vk_token)
-# print()
 
 # тест класса VkGetPhotos
 
