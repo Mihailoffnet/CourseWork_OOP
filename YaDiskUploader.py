@@ -1,5 +1,5 @@
-
 import requests
+from datetime import datetime
 from pprint import pprint
 
 class YaUploader:
@@ -21,25 +21,42 @@ class YaUploader:
         # print(response.status_code)
         if response.status_code == 409:
             # print(response.status_code)
-            print(f'\nПути {target_path} На Ядиске не существует')
+            log_line = f'{str(datetime.now())[:-4]}: Пути {target_path} На Ядиске не существует'
+            with open('logs.txt', 'a') as file:
+                file.write(f'{log_line}\n')
+            print(log_line)
             self._great_folder(target_path)
-            print(f'Папка {target_path} создана. Начинаем загрузку файла')
             response = requests.get(upload_url, headers=headers, params=params)
+            log_line = f'{str(datetime.now())[:-4]}: Папка {target_path} создана. Начинаем загрузку файла'
+            with open('logs.txt', 'a') as file:
+                file.write(f'{log_line}\n')
+            print(log_line)
         return response.json()
 
     def upload(self, path_to_file, filename, target_path, target_path_to_file):
         """Метод загружает файлы по списку file_list на яндекс диск"""
-        print(f'Запрашиваем ссылку для загрузки файла')
+        log_line = f'{str(datetime.now())[:-4]}: Запрашиваем ссылку для загрузки файла'
+        with open('logs.txt', 'a') as file:
+            file.write(f'{log_line}\n')
+        print(log_line)        
         href = self._upload_link(target_path_to_file, target_path)
         url = href.get('href')
-        print(f'Получена ссылка для загрузки файла')
+        log_line = f'{str(datetime.now())[:-4]}: Получена ссылка для загрузки файла'
+        with open('logs.txt', 'a') as file:
+            file.write(f'{log_line}\n')
         response = requests.put(url, data=open(path_to_file, 'rb'))
         response.raise_for_status()
         # print(response.status_code)
         if response.status_code == 201:
-            print(f'Файл {filename} успешно загружен на Яндекс Диск в папку {target_path}\n')
+            log_line = f'{str(datetime.now())[:-4]}: Файл {filename} успешно загружен на Яндекс Диск в папку {target_path}'
+            with open('logs.txt', 'a') as file:
+                file.write(f'{log_line}\n')
+            print(log_line)    
         else:
-            print(f'Ошибка загрузки файла {response.status_code}\nРабота программы остановлена\n')
+            log_line = f'{str(datetime.now())[:-4]}: Ошибка загрузки файла {response.status_code}. Работа программы остановлена'
+            with open('logs.txt', 'a') as file:
+                file.write(f'{log_line}\n')
+            print(log_line)   
 
     # функция для создания папки в яндекс диске, если указанного пути не существует
 
