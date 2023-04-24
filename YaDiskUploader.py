@@ -63,9 +63,11 @@ class YaUploader:
             target_path_to_file = f'{target_path}/{path_to_file}'
             self.upload(path_to_file, target_file_name, target_path, target_path_to_file)
         pprint(list)
-        with open('photo_list.json', 'w') as file:
-            json.loads(list, ensure_ascii=False, indent=4)
-        Logger.get_logging(f'Файл {photo_list}.json успешно сохранен.')
+        jsonStr = json.dumps(list)
+        file_name = f'{target_path}.json'
+        with open(file_name, 'w') as file:
+            json.dump(jsonStr, file, indent=4)
+        Logger.get_logging(f'Файл {file_name} успешно сохранен.')
           
           
 
