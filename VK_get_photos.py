@@ -56,9 +56,9 @@ class VkGetPhotos:
             Logger.get_logging(f'Ошибка запроса {response.status_code}. Работа программы остановлена.')    
             exit(0)
 
-        with open(file_name, "w") as f:
-            json.dump(response.json(), f, ensure_ascii=False, indent=4)
-        Logger.get_logging(f'Информация о последних фото успешно сохранена в файл {file_name} в формате json.') 
+#         with open(file_name, "w") as f:
+#             json.dump(response.json(), f, ensure_ascii=False, indent=4)
+#         Logger.get_logging(f'Информация о последних фото успешно сохранена в файл {file_name} в формате json.') 
         Logger.get_logging(f'Выбрали самые большие фотографии загруженных фото пользователя Id={owner_id}.')    
         list_photos = self._get_list_photo(response)
            
