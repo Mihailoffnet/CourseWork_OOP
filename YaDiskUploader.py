@@ -1,6 +1,9 @@
 import requests
 from datetime import datetime
+import json
 from pprint import pprint
+from Logger import Logger
+import os
 
 class YaUploader:
 
@@ -16,57 +19,59 @@ class YaUploader:
     def _upload_link(self, target_path_to_file, target_path):
         upload_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
         headers = self.get_headers()
-        params = {"path": target_path_to_file, "overwrite": "true"}
-        response = requests.get(upload_url, headers=headers, params=params)
+        params = {"path": target_path_to_file, "overwrite": "True"}
+        response = requests.get(upload_url, headers=headers, params=params, timeout=10)
         # print(response.status_code)
         if response.status_code == 409:
             # print(response.status_code)
-            log_line = f'{str(datetime.now())[:-4]}: Пути {target_path} На Ядиске не существует'
-            with open('logs.txt', 'a') as file:
-                file.write(f'{log_line}\n')
-            print(log_line)
+            Logger.get_logging(f'Пути {target_path} На Ядиске не существует.')
             self._great_folder(target_path)
-            response = requests.get(upload_url, headers=headers, params=params)
-            log_line = f'{str(datetime.now())[:-4]}: Папка {target_path} создана. Начинаем загрузку файла'
-            with open('logs.txt', 'a') as file:
-                file.write(f'{log_line}\n')
-            print(log_line)
+            response = requests.get(upload_url, headers=headers, params=params, timeout=10)
+            Logger.get_logging(f'Папка {target_path} создана. Начинаем загрузку файла.')
         return response.json()
 
     def upload(self, path_to_file, filename, target_path, target_path_to_file):
         """Метод загружает файлы по списку file_list на яндекс диск"""
-        log_line = f'{str(datetime.now())[:-4]}: Запрашиваем ссылку для загрузки файла'
-        with open('logs.txt', 'a') as file:
-            file.write(f'{log_line}\n')
-        print(log_line)        
+        Logger.get_logging(f'Запрашиваем ссылку для загрузки файла.')
         href = self._upload_link(target_path_to_file, target_path)
         url = href.get('href')
-        log_line = f'{str(datetime.now())[:-4]}: Получена ссылка для загрузки файла'
-        with open('logs.txt', 'a') as file:
-            file.write(f'{log_line}\n')
-        response = requests.put(url, data=open(path_to_file, 'rb'))
+        Logger.get_logging(f'Получена ссылка для загрузки файла.')
+
+        response = requests.put(url, data=open(path_to_file, 'rb'), timeout=120)
         response.raise_for_status()
         # print(response.status_code)
         if response.status_code == 201:
-            log_line = f'{str(datetime.now())[:-4]}: Файл {filename} успешно загружен на Яндекс Диск в папку {target_path}'
-            with open('logs.txt', 'a') as file:
-                file.write(f'{log_line}\n')
-            print(log_line)    
+            Logger.get_logging(f'Файл {filename} успешно загружен на Яндекс Диск в папку {target_path}.')
         else:
-            log_line = f'{str(datetime.now())[:-4]}: Ошибка загрузки файла {response.status_code}. Работа программы остановлена'
-            with open('logs.txt', 'a') as file:
-                file.write(f'{log_line}\n')
-            print(log_line)   
+            Logger.get_logging(f'Ошибка загрузки файла {response.status_code}. Работа программы остановлена.')
+            exit(0)
 
     # функция для создания папки в яндекс диске, если указанного пути не существует
 
     def _great_folder(self, target_path):
         url = 'https://cloud-api.yandex.net/v1/disk/resources'
         headers = self.get_headers()
-        params = {"path": target_path}
-        response = requests.put(url=url, headers=headers, params=params)
+        params = {'path': target_path}
+        response = requests.put(url=url, headers=headers, params=params, timeout=10)
         # print(response.status_code)
-        return response    
+        return response   
 
+    def list_upload(self, list, target_path):
+        for photo in list:
+            path_to_file = photo['file_name']
+            target_file_name = path_to_file
+            target_path_to_file = f'{target_path}/{path_to_file}'
+            self.upload(path_to_file, target_file_name, target_path, target_path_to_file)
+        pprint(list)
+        with open('photo_list.json', 'w') as file:
+            json.loads(list, ensure_ascii=False, indent=4)
+        Logger.get_logging(f'Файл {photo_list}.json успешно сохранен.')
+          
+          
 
-
+    # def _get_log(self, text):
+    #     log_line = f'{str(datetime.now())[:-3]} {text}'
+    #     with open('py_log.log', 'a') as file:
+    #         file.write(f'{log_line}\n')
+    #     print(log_line)
+  
