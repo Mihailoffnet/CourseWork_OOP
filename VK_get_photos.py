@@ -1,10 +1,10 @@
 import requests
-import json
+# import json
 from datetime import datetime
-from pprint import pprint
+# from pprint import pprint
 from Logger import Logger
-import logging
-import os
+# import logging
+# import os
 
 
 class VkGetPhotos:
@@ -38,27 +38,33 @@ class VkGetPhotos:
         Logger.get_logging(f'Отправляем запрос для получения информации о {count} фото пользователя Id={owner_id} в VK')
 
         # запрашиваем имя пользователя и создаем имя папки для загрузки
-        folder_name = self._get_user_name(params)
-        file_name = f'{folder_name}.json'
-        
+        x = self._get_user_name(params)
+        folder_name = x[0]
+        # file_name = f'{folder_name}.json' 
+        # используется для сохраниения json ответа VK
+        owner_id = x[1]
+        print(f'проверка подмены id {owner_id}')
+        params = self._get_params(owner_id, album_id, extended, 
+        photo_sizes, count, rev, api_version)
+
         # запрашгиваем информацию о фото  
         response = requests.get(URL, params, timeout=10)
         # count_photo = len(self._get_list_photo(response))
         if 'error' in response.json():
             error_code = response.json()['error']['error_code']
             error_msg = response.json()['error']['error_msg']
-            Logger.get_logging(f'Ошибка: {error_msg}. Код ошибки: {error_code}. Работа программы остановлена.')
+            Logger.get_logging(f'Ошибка: {error_msg}. Код ошибки: {error_code}. Работа программы остановлена.\n')
             exit(0)
         print
         if response.status_code == 200:
             Logger.get_logging(f'Информация о фото пользователя Id={owner_id} успешно прочитана.')
         else:
-            Logger.get_logging(f'Ошибка запроса {response.status_code}. Работа программы остановлена.')    
+            Logger.get_logging(f'Ошибка запроса {response.status_code}. Работа программы остановлена.\n')    
             exit(0)
 
-#         with open(file_name, "w") as f:
-#             json.dump(response.json(), f, ensure_ascii=False, indent=4)
-#         Logger.get_logging(f'Информация о последних фото успешно сохранена в файл {file_name} в формате json.') 
+        # with open(file_name, "w") as f:
+        #     json.dump(response.json(), f, ensure_ascii=False, indent=4)
+        # Logger.get_logging(f'Информация о последних фото успешно сохранена в файл {file_name} в формате json.') 
         Logger.get_logging(f'Выбрали самые большие фотографии загруженных фото пользователя Id={owner_id}.')    
         list_photos = self._get_list_photo(response)
            
@@ -76,7 +82,7 @@ class VkGetPhotos:
 
         response = f'{id}_{first_name}_{last_name}'
         
-        return response
+        return response, id
 
     def _get_list_photo(self, response):
         # создаем список словарей без лишних ключей
@@ -127,15 +133,19 @@ class VkGetPhotos:
                 temp_dict['file_name'] = f'{name}_{date_photo}.jpg'
             else:
                 temp_dict['file_name'] = f'{name}.jpg'
-            file_list.append(temp_dict)
-            url = line['url']
-            target_file_name = temp_dict['file_name']
             response = requests.get(url)
+            target_file_name = temp_dict['file_name']
+            url = line['url']
+            if response.status_code != 200:
+                Logger.get_logging(f'Временный файл {target_file_name} размера {size} не удалось сохранить на диск. Ошибка {response.status_code}.')
+                continue
+            else:
+                file_list.append(temp_dict)
             size = temp_dict['size']
             with open(target_file_name, 'wb') as file:
                 file.write(response.content)
-            Logger.get_logging(f'Файл {target_file_name} размера {size} сохранен на диск.')
-        
+            Logger.get_logging(f'Временный файл {target_file_name} размера {size} сохранен на диск.')
+        print(file_list)
         return file_list
 
 
