@@ -1,7 +1,7 @@
 import requests
-from datetime import datetime
+# from datetime import datetime
 import json
-from pprint import pprint
+# from pprint import pprint
 from Logger import Logger
 import os
 
@@ -62,18 +62,14 @@ class YaUploader:
             target_file_name = path_to_file
             target_path_to_file = f'{target_path}/{path_to_file}'
             self.upload(path_to_file, target_file_name, target_path, target_path_to_file)
-        pprint(list)
+            os.remove(path_to_file)
+            Logger.get_logging(f'Временный файл {path_to_file} удален.')
+        # pprint(list)
         jsonStr = json.dumps(list)
         file_name = f'{target_path}.json'
         with open(file_name, 'w') as file:
-            json.dump(jsonStr, file, indent=4)
+            json.dump(jsonStr, file, ensure_ascii=False, indent=4)
         Logger.get_logging(f'Файл {file_name} успешно сохранен.')
-          
-          
+        Logger.get_logging(f'Работа программы завершена. Загружено {len(list)} файлов.\n')  
 
-    # def _get_log(self, text):
-    #     log_line = f'{str(datetime.now())[:-3]} {text}'
-    #     with open('py_log.log', 'a') as file:
-    #         file.write(f'{log_line}\n')
-    #     print(log_line)
   
