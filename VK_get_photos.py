@@ -1,14 +1,11 @@
 import requests
-# import json
 from datetime import datetime
-# from pprint import pprint
 from Logger import Logger
-# import logging
-# import os
 
 
 class VkGetPhotos:
 
+  
     def __init__(self, token: str):
         self.token = token
 
@@ -28,8 +25,8 @@ class VkGetPhotos:
         }
         return params
     
-    def get_photos(self, owner_id, album_id='profile', extended=1, 
-        photo_sizes=1, count=5, rev=1, api_version='5.131'):
+    def get_photos(self, owner_id, album_id, extended, 
+        photo_sizes, count, rev, api_version):
 
         URL = 'https://api.vk.com/method/photos.get'
         params = self._get_params(owner_id, album_id, extended, 
@@ -40,13 +37,9 @@ class VkGetPhotos:
         # запрашиваем имя пользователя и создаем имя папки для загрузки
         x = self._get_user_name(params)
         folder_name = x[0]
-        # file_name = f'{folder_name}.json' 
-        # используется для сохраниения json ответа VK
         owner_id = x[1]
-        print(f'проверка подмены id {owner_id}')
         params = self._get_params(owner_id, album_id, extended, 
         photo_sizes, count, rev, api_version)
-
         # запрашгиваем информацию о фото  
         response = requests.get(URL, params, timeout=10)
         # count_photo = len(self._get_list_photo(response))
@@ -55,16 +48,11 @@ class VkGetPhotos:
             error_msg = response.json()['error']['error_msg']
             Logger.get_logging(f'Ошибка: {error_msg}. Код ошибки: {error_code}. Работа программы остановлена.\n')
             exit(0)
-        print
         if response.status_code == 200:
             Logger.get_logging(f'Информация о фото пользователя Id={owner_id} успешно прочитана.')
         else:
             Logger.get_logging(f'Ошибка запроса {response.status_code}. Работа программы остановлена.\n')    
             exit(0)
-
-        # with open(file_name, "w") as f:
-        #     json.dump(response.json(), f, ensure_ascii=False, indent=4)
-        # Logger.get_logging(f'Информация о последних фото успешно сохранена в файл {file_name} в формате json.') 
         Logger.get_logging(f'Выбрали самые большие фотографии загруженных фото пользователя Id={owner_id}.')    
         list_photos = self._get_list_photo(response)
            
@@ -72,14 +60,18 @@ class VkGetPhotos:
 
     def _get_user_name(self, params):
         URL = 'https://api.vk.com/method/users.get'
-    
         response = requests.get(URL, params=params, timeout=10).json()
+        print(len(response['response']))
+        if len(response['response']) == 0:
+            Logger.get_logging(f'Пользователь не существует. Работа программы остановлена.\n')
+            exit(0)
+            
+
         for key in response['response']:
             first_name = key['first_name']
             last_name = key['last_name']
             id = key['id']
             Logger.get_logging(f'Получена информация о пользователе VK с id={id}. Это {first_name} {last_name}.') 
-
         response = f'{id}_{first_name}_{last_name}'
         
         return response, id
@@ -87,19 +79,21 @@ class VkGetPhotos:
     def _get_list_photo(self, response):
         # создаем список словарей без лишних ключей
         list_photos = response.json().pop('response').pop('items')
-
         # перебираем список словарей и составляем новый список
         # содержащий только нужные данные по фото
         list_photo = []
+        counter = 0
         for dict in list_photos:
+            counter += 1
             temp_dict = {}
             temp_dict['id_photo'] = dict['id']
             temp_dict['likes_photo'] = dict['likes']['count']
             # дату фото для имени файла приводим в читаемый вид и формат str
-            temp_dict['date_photo'] = str(datetime.fromtimestamp(dict['date']))[:-9]
-            
-            # print(len(dict['sizes']))
-            # print(dict['sizes'])
+            # избавляемся от символов, которые не нравятся яндекс диску
+            # добавлем в конец имени "счетчик", так как встречаются файлы с одинаковыми лайками и датой 
+            # temp_dict['date_photo'] = str(dict['date']) + str('_') + str(counter)
+            temp_dict['date_photo'] = str(datetime.fromtimestamp(dict['date'])).replace(' ', '_').replace(':', '-') + str('_') + str(counter)
+            # выбор наибольшего фото
             for types in dict['sizes']:
                 if types['type'] == 's':
                     size = types['type']
@@ -122,17 +116,22 @@ class VkGetPhotos:
             temp_dict['size'] = size 
             temp_dict['url'] = url 
             list_photo.append(temp_dict)
-
+        # составляем список загруженных файлов с новыми именами
         file_list = []
         for line in list_photo:
             temp_dict = {}
             temp_dict['size'] = line['size']
             name = line['likes_photo']
-            if f'{name}.jpg' in temp_dict.keys():
-                date_photo = line['date_photo']
-                temp_dict['file_name'] = f'{name}_{date_photo}.jpg'
+            if len(file_list) == 0:
+                temp_dict['file_name'] = f'{name}.jpg'
             else:
                 temp_dict['file_name'] = f'{name}.jpg'
+                for key in file_list:
+                    if f'{name}.jpg' in key.values():
+                        date_photo = line['date_photo']
+                        temp_dict['file_name'] = f'{name}_{date_photo}.jpg'
+                        break
+
             response = requests.get(url)
             target_file_name = temp_dict['file_name']
             url = line['url']
@@ -145,7 +144,7 @@ class VkGetPhotos:
             with open(target_file_name, 'wb') as file:
                 file.write(response.content)
             Logger.get_logging(f'Временный файл {target_file_name} размера {size} сохранен на диск.')
-        print(file_list)
+
         return file_list
 
 
