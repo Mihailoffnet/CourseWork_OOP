@@ -36,7 +36,6 @@ class YaUploader:
         href = self._upload_link(target_path_to_file, target_path)
         url = href.get('href')
         Logger.get_logging(f'Получена ссылка для загрузки файла.')
-
         response = requests.put(url, data=open(path_to_file, 'rb'), timeout=120)
         response.raise_for_status()
         # print(response.status_code)
@@ -55,7 +54,8 @@ class YaUploader:
         response = requests.put(url=url, headers=headers, params=params, timeout=10)
         # print(response.status_code)
         return response   
-
+      
+    # функция загрузки файлов из списка
     def list_upload(self, list, target_path):
         for photo in list:
             path_to_file = photo['file_name']
@@ -64,11 +64,11 @@ class YaUploader:
             self.upload(path_to_file, target_file_name, target_path, target_path_to_file)
             os.remove(path_to_file)
             Logger.get_logging(f'Временный файл {path_to_file} удален.')
-        # pprint(list)
-        jsonStr = json.dumps(list)
+        dict_json = {}
+        dict_json['files'] = list
         file_name = f'{target_path}.json'
         with open(file_name, 'w') as file:
-            json.dump(jsonStr, file, ensure_ascii=False, indent=4)
+            json.dump(dict_json, file, ensure_ascii=False, indent=4)
         Logger.get_logging(f'Файл {file_name} успешно сохранен.')
         Logger.get_logging(f'Работа программы завершена. Загружено {len(list)} файлов.\n')  
 
