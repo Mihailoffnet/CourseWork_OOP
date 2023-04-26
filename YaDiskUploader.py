@@ -1,9 +1,10 @@
 import requests
 # from datetime import datetime
 import json
-# from pprint import pprint
+from pprint import pprint
 from Logger import Logger
 import os
+
 
 class YaUploader:
 
@@ -16,17 +17,29 @@ class YaUploader:
             'Authorization': f'OAuth {self.token}'
         }
 
+    def test_token(self):
+        url = 'https://cloud-api.yandex.net/v1/disk'
+        headers = self.get_headers()
+        response = requests.get(url = url, headers=headers, timeout=5)
+        code = response.status_code
+        if code != 200:
+            message = response.json()['message']
+            Logger.get_logging(f'Ошибка токена: {code} - {message}. Проверьте правильность введенного OAuth-токена Яндекс диска. Работа программы остановлена\n')
+            exit(0)
+        else:
+            Logger.get_logging(f'Токен яндекс диска проверен. Доступ предоставлен.')
+  
     def _upload_link(self, target_path_to_file, target_path):
         upload_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
         headers = self.get_headers()
         params = {"path": target_path_to_file, "overwrite": "True"}
-        response = requests.get(upload_url, headers=headers, params=params, timeout=10)
-        # print(response.status_code)
+        response = requests.get(upload_url, headers=headers, 
+                                params=params, timeout=10)
         if response.status_code == 409:
-            # print(response.status_code)
             Logger.get_logging(f'Пути {target_path} На Ядиске не существует.')
             self._great_folder(target_path)
-            response = requests.get(upload_url, headers=headers, params=params, timeout=10)
+            response = requests.get(upload_url, headers=headers, 
+                                    params=params, timeout=10)
             Logger.get_logging(f'Папка {target_path} создана. Начинаем загрузку файла.')
         return response.json()
 
@@ -38,21 +51,19 @@ class YaUploader:
         Logger.get_logging(f'Получена ссылка для загрузки файла.')
         response = requests.put(url, data=open(path_to_file, 'rb'), timeout=120)
         response.raise_for_status()
-        # print(response.status_code)
         if response.status_code == 201:
             Logger.get_logging(f'Файл {filename} успешно загружен на Яндекс Диск в папку {target_path}.')
         else:
             Logger.get_logging(f'Ошибка загрузки файла {response.status_code}. Работа программы остановлена.')
             exit(0)
 
-    # функция для создания папки в яндекс диске, если указанного пути не существует
-
+    # функция для создания папки в яндекс диске
     def _great_folder(self, target_path):
         url = 'https://cloud-api.yandex.net/v1/disk/resources'
         headers = self.get_headers()
         params = {'path': target_path}
-        response = requests.put(url=url, headers=headers, params=params, timeout=10)
-        # print(response.status_code)
+        response = requests.put(url=url, headers=headers, params=params,
+                                timeout=10)
         return response   
       
     # функция загрузки файлов из списка
@@ -71,5 +82,3 @@ class YaUploader:
             json.dump(dict_json, file, ensure_ascii=False, indent=4)
         Logger.get_logging(f'Файл {file_name} успешно сохранен.')
         Logger.get_logging(f'Работа программы завершена. Загружено {len(list)} файлов.\n')  
-
-  
