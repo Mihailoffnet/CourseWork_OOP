@@ -93,9 +93,10 @@ class VkGetPhotos:
             # избавляемся от символов, которые не нравятся яндекс диску
             # добавлем в конец имени "счетчик", так как встречаются файлы
             # с одинаковыми лайками и датой
-            temp_str = str(datetime.fromtimestamp(dict['date']))
-            temp_str = temp_str.replace(' ', '_').replace(':', '-')
-            temp_dict['date_photo'] = temp_str + str('_') + str(counter)
+            date_now = str(datetime.fromtimestamp(dict['date']))+str('_')
+            temp_str = date_now.replace(' ', '_').replace(':', '-')
+            temp_str += str(counter)
+            temp_dict['date_photo'] = temp_str
             # выбор наибольшего фото
             size_dict = {'s': 1, 'm': 2, 'o': 3, 'p': 4, 'q': 5, 'r': 6,
                          'x': 7, 'y': 8, 'z': 9, 'w': 10}
