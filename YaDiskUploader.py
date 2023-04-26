@@ -24,10 +24,13 @@ class YaUploader:
         code = response.status_code
         if code != 200:
             message = response.json()['message']
-            Logger.get_logging(f'Ошибка токена: {code} - {message}. Проверьте правильность введенного OAuth-токена Яндекс диска. Работа программы остановлена\n')
+            Logger.get_logging(f'Ошибка токена: {code} - {message}. Проверьте'
+                               f' правильность введенного OAuth-токена Яндекс'
+                               f' диска. Работа программы остановлена\n')
             exit(0)
         else:
-            Logger.get_logging(f'Токен яндекс диска проверен. Доступ предоставлен.')
+            Logger.get_logging(f'Токен яндекс диска проверен.'
+                               f' Доступ предоставлен.')
   
     def _upload_link(self, target_path_to_file, target_path):
         upload_url = "https://cloud-api.yandex.net/v1/disk/resources/upload"
@@ -40,7 +43,8 @@ class YaUploader:
             self._great_folder(target_path)
             response = requests.get(upload_url, headers=headers, 
                                     params=params, timeout=10)
-            Logger.get_logging(f'Папка {target_path} создана. Начинаем загрузку файла.')
+            Logger.get_logging(f'Папка {target_path} создана.'
+                               f' Начинаем загрузку файла.')
         return response.json()
 
     def upload(self, path_to_file, filename, target_path, target_path_to_file):
@@ -52,9 +56,11 @@ class YaUploader:
         response = requests.put(url, data=open(path_to_file, 'rb'), timeout=120)
         response.raise_for_status()
         if response.status_code == 201:
-            Logger.get_logging(f'Файл {filename} успешно загружен на Яндекс Диск в папку {target_path}.')
+            Logger.get_logging(f'Файл {filename} успешно загружен на Яндекс'
+                               f' Диск в папку {target_path}.')
         else:
-            Logger.get_logging(f'Ошибка загрузки файла {response.status_code}. Работа программы остановлена.')
+            Logger.get_logging(f'Ошибка загрузки файла {response.status_code}.'
+                               f' Работа программы остановлена.')
             exit(0)
 
     # функция для создания папки в яндекс диске
@@ -72,7 +78,8 @@ class YaUploader:
             path_to_file = photo['file_name']
             target_file_name = path_to_file
             target_path_to_file = f'{target_path}/{path_to_file}'
-            self.upload(path_to_file, target_file_name, target_path, target_path_to_file)
+            self.upload(path_to_file, target_file_name, target_path,
+                        target_path_to_file)
             os.remove(path_to_file)
             Logger.get_logging(f'Временный файл {path_to_file} удален.')
         dict_json = {}
@@ -81,4 +88,5 @@ class YaUploader:
         with open(file_name, 'w') as file:
             json.dump(dict_json, file, ensure_ascii=False, indent=4)
         Logger.get_logging(f'Файл {file_name} успешно сохранен.')
-        Logger.get_logging(f'Работа программы завершена. Загружено {len(list)} файлов.\n')  
+        Logger.get_logging(f'Работа программы завершена. Загружено {len(list)}'
+                           f' фото.\n')  
