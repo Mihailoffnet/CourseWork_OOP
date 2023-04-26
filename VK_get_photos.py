@@ -1,36 +1,35 @@
 import requests
 from datetime import datetime
-from pprint import pprint
 from Logger import Logger
 
 
 class VkGetPhotos:
-  
+
     def __init__(self, token: str):
         self.token = token
 
-    def _get_params(self, owner_id, album_id, extended, 
+    def _get_params(self, owner_id, album_id, extended,
                     photo_sizes, count, rev, api_version):
 
         params = {
-        'owner_id': owner_id,
-        'user_ids': owner_id,
-        'rev': rev,
-        'album_id': album_id,
-        'extended': extended,
-        'photo_sizes': photo_sizes,
-        'count': count,
-        'access_token': self.token,
-        'v': api_version,
+            'owner_id': owner_id,
+            'user_ids': owner_id,
+            'rev': rev,
+            'album_id': album_id,
+            'extended': extended,
+            'photo_sizes': photo_sizes,
+            'count': count,
+            'access_token': self.token,
+            'v': api_version,
         }
         return params
-    
-    def get_photos(self, owner_id, album_id, extended, 
+
+    def get_photos(self, owner_id, album_id, extended,
                    photo_sizes, count, rev, api_version):
 
         URL = 'https://api.vk.com/method/photos.get'
-        params = self._get_params(owner_id, album_id, extended, 
-        photo_sizes, count, rev, api_version)
+        params = self._get_params(owner_id, album_id, extended,
+                                  photo_sizes, count, rev, api_version)
 
         Logger.get_logging(f'Отправляем запрос для получения информации о'
                            f' {count} фото пользователя Id={owner_id} в VK')
@@ -39,26 +38,26 @@ class VkGetPhotos:
         x = self._get_user_name(params)
         folder_name = x[0]
         owner_id = x[1]
-        params = self._get_params(owner_id, album_id, extended, 
-        photo_sizes, count, rev, api_version)
-        # запрашгиваем информацию о фото  
+        params = self._get_params(owner_id, album_id, extended,
+                                  photo_sizes, count, rev, api_version)
+        # запрашгиваем информацию о фото
         response = requests.get(URL, params, timeout=10)
         # count_photo = len(self._get_list_photo(response))
         if 'error' in response.json():
             error_code = response.json()['error']['error_code']
             error_msg = response.json()['error']['error_msg']
-            Logger.get_logging(f'Ошибка: {error_msg}. Код ошибки: {error_code}.' 
+            Logger.get_logging(f'Ошибка: {error_msg}. Код ошибки: {error_code}.'
                                f' Работа программы остановлена.\n')
             exit(0)
         if response.status_code == 200:
-            Logger.get_logging(f'Информация о фото пользователя Id={owner_id}' 
+            Logger.get_logging(f'Информация о фото пользователя Id={owner_id}'
                                f'успешно прочитана.')
         else:
-            Logger.get_logging(f'Ошибка запроса {response.status_code}.' 
-                               f' Работа программы остановлена.\n')    
+            Logger.get_logging(f'Ошибка запроса {response.status_code}.'
+                               f' Работа программы остановлена.\n')
             exit(0)
         Logger.get_logging(f'Выбрали самые большие фотографии загруженных'
-                           f' фото пользователя Id={owner_id}.')    
+                           f' фото пользователя Id={owner_id}.')
         list_photos = self._get_list_photo(response)
         return response, list_photos, folder_name
 
@@ -74,7 +73,7 @@ class VkGetPhotos:
             last_name = key['last_name']
             id = key['id']
             Logger.get_logging(f'Получена информация о пользователе VK с'
-                               f' id={id}. Это {first_name} {last_name}.') 
+                               f' id={id}. Это {first_name} {last_name}.')
         response = f'{id}_{first_name}_{last_name}'
         return response, id
 
@@ -92,7 +91,7 @@ class VkGetPhotos:
             temp_dict['likes_photo'] = dict['likes']['count']
             # дату фото для имени файла приводим в читаемый вид и формат str
             # избавляемся от символов, которые не нравятся яндекс диску
-            # добавлем в конец имени "счетчик", так как встречаются файлы с одинаковыми лайками и датой 
+            # добавлем в конец имени "счетчик", так как встречаются файлы с одинаковыми лайками и датой
             temp_str = str(datetime.fromtimestamp(dict['date']))
             temp_str = temp_str.replace(' ', '_').replace(':', '-')
             temp_dict['date_photo'] = temp_str + str('_') + str(counter)
@@ -105,19 +104,19 @@ class VkGetPhotos:
                     size = types['type']
                     url = types['url']
                 elif types['type'] == 'x':
-                    size = types['type']  
-                    url = types['url']   
-                elif types['type'] == 'y':
-                    size = types['type']    
-                    url = types['url']
-                elif types['type'] == 'z':
-                    size = types['type']    
-                    url = types['url']   
-                else: 
                     size = types['type']
                     url = types['url']
-            temp_dict['size'] = size 
-            temp_dict['url'] = url 
+                elif types['type'] == 'y':
+                    size = types['type']
+                    url = types['url']
+                elif types['type'] == 'z':
+                    size = types['type']
+                    url = types['url']
+                else:
+                    size = types['type']
+                    url = types['url']
+            temp_dict['size'] = size
+            temp_dict['url'] = url
             list_photo.append(temp_dict)
         # составляем список загруженных файлов с новыми именами
         file_list = []
