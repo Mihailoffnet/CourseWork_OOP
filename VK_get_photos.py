@@ -1,16 +1,16 @@
 import requests
 from datetime import datetime
+from pprint import pprint
 from Logger import Logger
 
 
 class VkGetPhotos:
-
   
     def __init__(self, token: str):
         self.token = token
 
     def _get_params(self, owner_id, album_id, extended, 
-        photo_sizes, count, rev, api_version):
+                    photo_sizes, count, rev, api_version):
 
         params = {
         'owner_id': owner_id,
@@ -26,7 +26,7 @@ class VkGetPhotos:
         return params
     
     def get_photos(self, owner_id, album_id, extended, 
-        photo_sizes, count, rev, api_version):
+                   photo_sizes, count, rev, api_version):
 
         URL = 'https://api.vk.com/method/photos.get'
         params = self._get_params(owner_id, album_id, extended, 
@@ -55,25 +55,20 @@ class VkGetPhotos:
             exit(0)
         Logger.get_logging(f'Выбрали самые большие фотографии загруженных фото пользователя Id={owner_id}.')    
         list_photos = self._get_list_photo(response)
-           
         return response, list_photos, folder_name
 
     def _get_user_name(self, params):
         URL = 'https://api.vk.com/method/users.get'
         response = requests.get(URL, params=params, timeout=10).json()
-        print(len(response['response']))
         if len(response['response']) == 0:
             Logger.get_logging(f'Пользователь не существует. Работа программы остановлена.\n')
             exit(0)
-            
-
         for key in response['response']:
             first_name = key['first_name']
             last_name = key['last_name']
             id = key['id']
             Logger.get_logging(f'Получена информация о пользователе VK с id={id}. Это {first_name} {last_name}.') 
         response = f'{id}_{first_name}_{last_name}'
-        
         return response, id
 
     def _get_list_photo(self, response):
@@ -91,8 +86,9 @@ class VkGetPhotos:
             # дату фото для имени файла приводим в читаемый вид и формат str
             # избавляемся от символов, которые не нравятся яндекс диску
             # добавлем в конец имени "счетчик", так как встречаются файлы с одинаковыми лайками и датой 
-            # temp_dict['date_photo'] = str(dict['date']) + str('_') + str(counter)
-            temp_dict['date_photo'] = str(datetime.fromtimestamp(dict['date'])).replace(' ', '_').replace(':', '-') + str('_') + str(counter)
+            temp_str = str(datetime.fromtimestamp(dict['date']))
+            temp_str = temp_str.replace(' ', '_').replace(':', '-')
+            temp_dict['date_photo'] = temp_str + str('_') + str(counter)
             # выбор наибольшего фото
             for types in dict['sizes']:
                 if types['type'] == 's':
@@ -131,7 +127,6 @@ class VkGetPhotos:
                         date_photo = line['date_photo']
                         temp_dict['file_name'] = f'{name}_{date_photo}.jpg'
                         break
-
             response = requests.get(url)
             target_file_name = temp_dict['file_name']
             url = line['url']
@@ -144,11 +139,4 @@ class VkGetPhotos:
             with open(target_file_name, 'wb') as file:
                 file.write(response.content)
             Logger.get_logging(f'Временный файл {target_file_name} размера {size} сохранен на диск.')
-
         return file_list
-
-
-
-
-
-        
