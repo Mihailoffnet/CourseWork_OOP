@@ -27,18 +27,21 @@ count_photo = '''
 Если у пользователя окажется меньше фотографий, то будут скачаны все.
 Ваш выбор: '''
 
-# загружаю токен ВК из файла 
+# загружаю токен ВК из файла
 with open('token_vk.txt', 'r') as file_object:
     vk_token = file_object.readline().strip()
 
 # функция для объединения функционала двух классов
-def safe_photo(owner_id, album_id='profile', extended=1, 
-        photo_sizes=1, count=5, rev=1, api_version='5.131'):
+
+
+def safe_photo(owner_id, album_id='profile', extended=1,
+               photo_sizes=1, count=5, rev=1, api_version='5.131'):
     get_photo = VkGetPhotos(vk_token)
     uploader = YaUploader(yadisk_token)
-    result_photos = get_photo.get_photos(owner_id, album_id, extended, 
-        photo_sizes, count, rev, api_version)
+    result_photos = get_photo.get_photos(owner_id, album_id, extended,
+                                         photo_sizes, count, rev, api_version)
     result_yadisk = uploader.list_upload(result_photos[1], result_photos[2])
+
 
 # запускаем программу
 if __name__ == '__main__':
@@ -63,14 +66,13 @@ if __name__ == '__main__':
         safe_photo(owner_id=id)
     else:
         x = input(take_album)
-        if x == '2': a_id = 'wall'
-        else: a_id = 'profile'
+        if x == '2':
+            a_id = 'wall'
+        else:
+            a_id = 'profile'
         y = ''
         while not y.isnumeric():
             y = input(count_photo)
             print()
         count_photo = int(y)
         safe_photo(owner_id=id, album_id=a_id, count=count_photo)
-      
-
-      
