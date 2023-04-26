@@ -5,6 +5,7 @@ from datetime import datetime
 class Logger:
 
     logging.basicConfig(level=logging.INFO, filename="py_log.log", filemode="w",
+                        encoding='utf-8',
                         format='%(asctime)s %(levelname)s %(message)s')
     # logging.debug("A DEBUG Message")
     # logging.info("An INFO")
