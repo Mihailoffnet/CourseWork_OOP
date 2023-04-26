@@ -91,32 +91,19 @@ class VkGetPhotos:
             temp_dict['likes_photo'] = dict['likes']['count']
             # дату фото для имени файла приводим в читаемый вид и формат str
             # избавляемся от символов, которые не нравятся яндекс диску
-            # добавлем в конец имени "счетчик", так как встречаются файлы с одинаковыми лайками и датой
+            # добавлем в конец имени "счетчик", так как встречаются файлы
+            # с одинаковыми лайками и датой
             temp_str = str(datetime.fromtimestamp(dict['date']))
             temp_str = temp_str.replace(' ', '_').replace(':', '-')
             temp_dict['date_photo'] = temp_str + str('_') + str(counter)
             # выбор наибольшего фото
-            for types in dict['sizes']:
-                if types['type'] == 's':
-                    size = types['type']
-                    url = types['url']
-                elif types['type'] == 'm':
-                    size = types['type']
-                    url = types['url']
-                elif types['type'] == 'x':
-                    size = types['type']
-                    url = types['url']
-                elif types['type'] == 'y':
-                    size = types['type']
-                    url = types['url']
-                elif types['type'] == 'z':
-                    size = types['type']
-                    url = types['url']
-                else:
-                    size = types['type']
-                    url = types['url']
-            temp_dict['size'] = size
+            size_dict = {'s': 1, 'm': 2, 'o': 3, 'p': 4, 'q': 5, 'r': 6,
+                         'x': 7, 'y': 8, 'z': 9, 'w': 10}
+            url = max(dict['sizes'], key=lambda x: size_dict[x['type']])['url']
             temp_dict['url'] = url
+            size = max(dict['sizes'], key=lambda x: size_dict[x['type']])[
+                'type']
+            temp_dict['size'] = size
             list_photo.append(temp_dict)
         # составляем список загруженных файлов с новыми именами
         file_list = []
