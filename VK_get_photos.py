@@ -10,7 +10,6 @@ class VkGetPhotos:
 
     def _get_params(self, owner_id, album_id, extended,
                     photo_sizes, count, rev, api_version):
-
         params = {
             'owner_id': owner_id,
             'user_ids': owner_id,
@@ -26,14 +25,11 @@ class VkGetPhotos:
 
     def get_photos(self, owner_id, album_id, extended,
                    photo_sizes, count, rev, api_version):
-
         URL = 'https://api.vk.com/method/photos.get'
         params = self._get_params(owner_id, album_id, extended,
                                   photo_sizes, count, rev, api_version)
-
         Logger.get_logging(f'Отправляем запрос для получения информации о'
                            f' {count} фото пользователя Id={owner_id} в VK')
-
         # запрашиваем имя пользователя и создаем имя папки для загрузки
         x = self._get_user_name(params)
         folder_name = x[0]
@@ -56,8 +52,8 @@ class VkGetPhotos:
             Logger.get_logging(f'Ошибка запроса {response.status_code}.'
                                f' Работа программы остановлена.\n')
             exit(0)
-        Logger.get_logging(f'Выбрали самые большие фотографии загруженных'
-                           f' фото пользователя Id={owner_id}.')
+        Logger.get_logging(f'Выбрали самые большие фотографии из фото'
+                           f' пользователя Id={owner_id}.')
         list_photos = self._get_list_photo(response)
         return response, list_photos, folder_name
 
@@ -106,7 +102,7 @@ class VkGetPhotos:
                 'type']
             temp_dict['size'] = size
             list_photo.append(temp_dict)
-        # составляем список загруженных файлов с новыми именами
+        # составляем список файлов для загрузки с новыми именами
         file_list = []
         for line in list_photo:
             temp_dict = {}
